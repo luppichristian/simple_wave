@@ -338,24 +338,32 @@ extern "C" {
             // Read the chunk header
             fread(&chunk, sizeof(RIFF_CHUNK), 1, file);
 
-            // Check if this is the 'fmt ' chunk
-            if (chunk.id == WAVE_CHUNK_FORMAT)
+            if (chunk.id == WAVE_CHUNK_DATA)
+            {
+                out_wave->data_chunk = (RIFF_CHUNK*)allocate(sizeof(RIFF_CHUNK));
+                memcpy(out_wave->data_chunk, &chunk, sizeof(RIFF_CHUNK));
+                out_wave->data_chunk_offset = ftell(file) - sizeof(RIFF_CHUNK);
+                out_wave->sample_data_offset = ftell(file);
+                out_wave->sample_data_size = chunk.size;
+                
+                fseek(file, chunk.size, SEEK_CUR);
+            }
+            else if (chunk.id == WAVE_CHUNK_FORMAT)
             {
                 out_wave->format_chunk = (RIFF_CHUNK*)allocate(sizeof(RIFF_CHUNK));
                 memcpy(out_wave->format_chunk, &chunk, sizeof(RIFF_CHUNK));
+                out_wave->format_chunk_offset = ftell(file) - sizeof(RIFF_CHUNK);
 
-                // Read the format data
                 out_wave->format = (WAVE_FORMAT*)allocate(chunk.size);
                 fread(out_wave->format, 1, chunk.size, file);
-
-                // Calculate offset from start of file
-                out_wave->format_chunk_offset = ftell(file) - sizeof(RIFF_CHUNK);
             }
             else
             {
                 // Skip over this chunk
                 fseek(file, chunk.size, SEEK_CUR);
             }
+
+            
 
             if (chunk.size % 2 != 0)
                 fseek(file, 1, SEEK_CUR);
