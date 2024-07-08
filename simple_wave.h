@@ -191,6 +191,11 @@ extern "C" {
     */
     extern int Wave_Free(WAVE* wave, WAVE_ALLOCATOR* allocator);
 
+    /*
+      Returns the offset of the sample data in the parsed memory.
+    */
+    extern size_t Wave_GetSampleDataOffset(WAVE* wave);
+
     //
     //
     //
@@ -515,6 +520,14 @@ extern "C" {
         }
 
         return 0;
+    }
+
+    size_t Wave_GetSampleDataOffset(WAVE* wave)
+    {
+        if(!wave)
+            return 0;
+
+        return wave->sample_data_offset;
     }
 
 #endif // SIMPLE_WAVE_IMPLEMENTATION
